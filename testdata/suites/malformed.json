@@ -1,0 +1,10 @@
+{
+  "suite_version": "1",
+  "name": "malformed",
+  "description": "Syntactically broken JSON. Exercises the decode error path.",
+  "cases": [
+    {
+      "id": "PI-900",
+      "category": "prompt_injection",
+      "severity": "low",
+      "prompt": "this object is never closed"

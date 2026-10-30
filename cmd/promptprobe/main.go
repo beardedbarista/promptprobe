@@ -1,14 +1,18 @@
 // Command promptprobe runs adversarial test suites against an AI application
 // and reports which attacks succeeded.
 //
-// M0 scope: argument parsing, subcommand dispatch, and exit codes only.
-// The subcommands print what they would do; M1 gives "run" a real suite loader.
+// M1 scope: "run" loads and validates a suite and lists its cases. Nothing is
+// sent to a target yet; "send" still only echoes its arguments.
 package main
 
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
+	"text/tabwriter"
+
+	"github.com/beardedbarista/promptprobe/internal/suite"
 )
 
 // version is overwritten at build time by the Makefile's -ldflags.
@@ -60,8 +64,8 @@ func run(args []string) int {
 	}
 }
 
-// cmdRun will execute a whole suite against a target. For now it validates its
-// flags and reports what it would do.
+// cmdRun will execute a whole suite against a target. For now it loads and
+// validates the suite and prints the cases it would run.
 func cmdRun(args []string) int {
 	fs := flag.NewFlagSet("run", flag.ContinueOnError)
 	suitePath := fs.String("suite", "", "path to a JSON test suite (required)")
@@ -80,8 +84,26 @@ func cmdRun(args []string) int {
 		return exitOperational
 	}
 
-	fmt.Printf("would run suite %q against %s\n", *suitePath, *targetURL)
+	s, err := suite.Load(*suitePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "promptprobe run: %v\n", err)
+		return exitOperational
+	}
+
+	fmt.Printf("suite %q: %d cases, would run against %s\n\n", s.Name, len(s.Cases), *targetURL)
+	printCases(os.Stdout, s.Cases)
 	return exitOK
+}
+
+// printCases writes one aligned row per case. tabwriter pads columns to the
+// widest cell, so the table stays readable whatever the IDs look like.
+func printCases(w io.Writer, cases []suite.Case) {
+	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(tw, "ID\tCATEGORY\tSEVERITY\tOWASP\tDETECTOR")
+	for _, c := range cases {
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n", c.ID, c.Category, c.Severity, c.OWASP, c.Detector.Type)
+	}
+	tw.Flush()
 }
 
 // cmdSend sends a single prompt, for manual exploration and debugging.

@@ -1,0 +1,34 @@
+{
+  "suite_version": "1",
+  "name": "invalid",
+  "description": "Valid JSON, invalid content. Exercises the validation error path.",
+  "cases": [
+    {
+      "id": "PI-901",
+      "category": "prompt_injection",
+      "severity": "high",
+      "owasp": "LLM01",
+      "prompt": "A perfectly fine case, so that the loader has something valid to contrast against.",
+      "detector": { "type": "contains_any", "values": ["anything"] },
+      "rationale": "Valid."
+    },
+    {
+      "id": "PI-902",
+      "category": "prompt_injection",
+      "severity": "urgent",
+      "owasp": "LLM01",
+      "prompt": "",
+      "detector": { "type": "vibes" },
+      "rationale": "Three problems: severity is not in the allowed set, prompt is empty, detector type is not in the registry."
+    },
+    {
+      "id": "PI-901",
+      "category": "prompt_injection",
+      "severity": "low",
+      "owasp": "LLM01",
+      "prompt": "Duplicate id, same as the first case.",
+      "detector": { "type": "regex", "pattern": "." },
+      "rationale": "Fourth problem: duplicate case id."
+    }
+  ]
+}
