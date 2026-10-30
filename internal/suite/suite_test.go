@@ -91,6 +91,47 @@ func TestLoadUnknownField(t *testing.T) {
 	}
 }
 
+// TestLoadTrailingContent checks that nothing after the suite object is
+// silently ignored, while ordinary trailing whitespace still loads.
+func TestLoadTrailingContent(t *testing.T) {
+	const valid = `{"suite_version":"1","name":"t","cases":[{"id":"A","category":"prompt_injection","severity":"low","prompt":"p","detector":{"type":"canary_leak"}}]}`
+	const invalid = `{"suite_version":"1","name":"","cases":[]}`
+
+	tests := []struct {
+		name    string
+		content string
+		want    error // nil means the suite should load
+	}{
+		{"trailing newline", valid + "\n", nil},
+		{"trailing whitespace", valid + " \n\t\n", nil},
+		{"second object", valid + "\n" + valid, ErrMalformed},
+		{"stray closing brace", valid + "}", ErrMalformed},
+		{"stray closing bracket", valid + "]", ErrMalformed},
+		{"trailing text", valid + " garbage", ErrMalformed},
+		// Malformed is checked before validation, so a broken file is
+		// reported as broken even when its content is also invalid.
+		{"invalid suite with trailing object", invalid + " {}", ErrMalformed},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := Load(writeTemp(t, tt.content))
+			if tt.want == nil {
+				if err != nil {
+					t.Fatalf("Load() = %v, want nil", err)
+				}
+				return
+			}
+			if !errors.Is(err, tt.want) {
+				t.Fatalf("Load() = %v, want one wrapping %v", err, tt.want)
+			}
+			if errors.Is(err, ErrInvalid) {
+				t.Errorf("Load() = %v, should not also wrap ErrInvalid", err)
+			}
+		})
+	}
+}
+
 // validCase is a case that passes validation. Table tests below change one
 // field at a time, so each row tests exactly one rule.
 func validCase() Case {

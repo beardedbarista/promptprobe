@@ -116,6 +116,16 @@ func Load(path string) (*Suite, error) {
 		return nil, fmt.Errorf("%w: %s: %s", ErrMalformed, path, describeDecodeError(data, err))
 	}
 
+	// Decode reads one JSON value and stops. Anything after the suite object,
+	// such as a second pasted object, would be silently dropped and its cases
+	// would never run. So the next token must be end of input: dec.More() is
+	// not enough, because it treats a stray '}' or ']' as a clean ending.
+	end := dec.InputOffset()
+	if _, err := dec.Token(); err != io.EOF {
+		line, col := position(data, end)
+		return nil, fmt.Errorf("%w: %s: line %d, column %d: unexpected content after the suite object", ErrMalformed, path, line, col)
+	}
+
 	if err := s.Validate(); err != nil {
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}

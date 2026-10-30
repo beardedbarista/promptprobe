@@ -18,6 +18,7 @@ import (
 // version is overwritten at build time by the Makefile's -ldflags.
 // It has to be a var, not a const: the linker can only patch variables.
 var version = "dev"
+
 // Exit codes are part of promptprobe's public interface, not an afterthought.
 // CI reads them to decide whether a run found vulnerabilities, so they are
 // defined once, here, and never written as bare numbers elsewhere
@@ -31,6 +32,7 @@ const (
 func main() {
 	os.Exit(run(os.Args[1:]))
 }
+
 // run holds everything main would otherwise do, and returns an exit code
 // instead of calling os.Exit.
 //
@@ -61,6 +63,7 @@ func run(args []string) int {
 		return exitOperational
 	}
 }
+
 // cmdRun will execute a whole suite against a target. For now it loads and
 // validates the suite and prints the cases it would run.
 func cmdRun(args []string) int {
