@@ -1,8 +1,9 @@
 // Command promptprobe runs adversarial test suites against an AI application
 // and reports which attacks succeeded.
-//
+
 // M1 scope: "run" loads and validates a suite and lists its cases. Nothing is
 // sent to a target yet; "send" still only echoes its arguments.
+
 package main
 
 import (
@@ -17,11 +18,13 @@ import (
 
 // version is overwritten at build time by the Makefile's -ldflags.
 // It has to be a var, not a const: the linker can only patch variables.
+
 var version = "dev"
 
 // Exit codes are part of promptprobe's public interface, not an afterthought.
 // CI reads them to decide whether a run found vulnerabilities, so they are
-// defined once, here, and never written as bare numbers elsewhere. Spec §5.5.
+// defined once, here, and never written as bare numbers elsewhere
+
 const (
 	exitOK           = 0 // every case passed: the target resisted everything
 	exitFindings     = 1 // at least one attack succeeded
@@ -40,6 +43,7 @@ func main() {
 // which means any code that calls it cannot be tested. A function returning an
 // int can be. main stays one line so that every decision below it is reachable
 // from a test.
+
 func run(args []string) int {
 	if len(args) == 0 {
 		usage()
@@ -66,6 +70,7 @@ func run(args []string) int {
 
 // cmdRun will execute a whole suite against a target. For now it loads and
 // validates the suite and prints the cases it would run.
+
 func cmdRun(args []string) int {
 	fs := flag.NewFlagSet("run", flag.ContinueOnError)
 	suitePath := fs.String("suite", "", "path to a JSON test suite (required)")
@@ -74,6 +79,7 @@ func cmdRun(args []string) int {
 	// ContinueOnError makes Parse return an error rather than killing the
 	// process, which is what keeps run() testable. The default, ExitOnError,
 	// would call os.Exit from inside the flag package and defeat the split above.
+
 	if err := fs.Parse(args); err != nil {
 		return exitOperational
 	}
@@ -97,6 +103,7 @@ func cmdRun(args []string) int {
 
 // printCases writes one aligned row per case. tabwriter pads columns to the
 // widest cell, so the table stays readable whatever the IDs look like.
+
 func printCases(w io.Writer, cases []suite.Case) {
 	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(tw, "ID\tCATEGORY\tSEVERITY\tOWASP\tDETECTOR")
@@ -107,6 +114,7 @@ func printCases(w io.Writer, cases []suite.Case) {
 }
 
 // cmdSend sends a single prompt, for manual exploration and debugging.
+
 func cmdSend(args []string) int {
 	fs := flag.NewFlagSet("send", flag.ContinueOnError)
 	targetURL := fs.String("target", "http://localhost:8080/v1/chat", "target endpoint")
@@ -128,6 +136,7 @@ func cmdSend(args []string) int {
 
 // usage goes to stderr because it is printed alongside errors. Help text on
 // stdout would get mixed into piped output.
+
 func usage() {
 	fmt.Fprint(os.Stderr, `promptprobe — adversarial test runner for AI applications
 
