@@ -110,7 +110,8 @@ map entry — not an interface, not a plugin.
 ## Commands
 
 ```bash
-make build     # compile to bin/promptprobe
+make build     # compile bin/promptprobe and bin/mockllm
+make mock      # run mockllm on :8080
 make test      # go test ./...
 make vet       # go vet ./...
 make fmt       # gofmt -l -w . (rewrites files)
@@ -120,7 +121,8 @@ make check     # fmt-check, vet, test — run before every commit
 
 ## Current state
 
-M0 and M1 complete. Next is M2: `cmd/mockllm`, the deterministic target.
+M0, M1, and M2 complete. Next is M3: a concrete `MockTarget` client in
+`internal/target`, and `promptprobe send` working end to end.
 
 Each milestone is its own commit. Verify before claiming anything works — run the
 commands and show the output rather than asserting success.

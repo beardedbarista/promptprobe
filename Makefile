@@ -2,11 +2,16 @@ BINARY  := promptprobe
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -ldflags "-X main.version=$(VERSION)"
 
-.PHONY: build test vet fmt fmt-check check clean
+.PHONY: build mock test vet fmt fmt-check check clean
 
-## build: compile the CLI into bin/
+## build: compile the CLI and the mock target into bin/
 build:
 	go build $(LDFLAGS) -o bin/$(BINARY) ./cmd/promptprobe
+	go build -o bin/mockllm ./cmd/mockllm
+
+## mock: run the deterministic mock target on :8080 (Ctrl-C to stop)
+mock:
+	go run ./cmd/mockllm
 
 ## test: run every test in the module
 test:
